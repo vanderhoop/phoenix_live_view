@@ -915,7 +915,7 @@ defmodule Phoenix.LiveView.Channel do
   defp render_diff(state, socket, force?) do
     {socket, diff, components} =
       if force? or Utils.changed?(socket) do
-        rendered = Utils.to_rendered(socket, socket.view)
+        rendered = Phoenix.LiveView.Renderer.to_rendered(socket, socket.view)
         {socket, diff, components} = Diff.render(socket, rendered, state.components)
 
         socket =

@@ -34,7 +34,9 @@ defmodule Phoenix.LiveView.LiveViewTest do
     salt = Phoenix.LiveView.Utils.salt!(@endpoint)
 
     expired_token =
-      Phoenix.Token.sign(@endpoint, salt, {Phoenix.LiveView.Static.token_vsn(), %{}}, signed_at: 0)
+      Phoenix.Token.sign(@endpoint, salt, {Phoenix.LiveView.Static.token_vsn(), %{}},
+        signed_at: 0
+      )
 
     %Plug.Conn{conn | resp_body: String.replace(html, session_token, expired_token)}
   end
@@ -71,6 +73,18 @@ defmodule Phoenix.LiveView.LiveViewTest do
         |> get("/not_found")
         |> live()
       end
+    end
+  end
+
+  describe "render_with" do
+    test "with custom function", %{conn: conn} do
+      conn = get(conn, "/render-with")
+      html = html_response(conn, 200)
+      assert html =~ "FROM RENDER WITH!"
+
+      {:ok, view, html} = live(conn)
+      assert html =~ "FROM RENDER WITH!"
+      assert render(view) =~ "FROM RENDER WITH!"
     end
   end
 
@@ -352,14 +366,14 @@ defmodule Phoenix.LiveView.LiveViewTest do
                 _parent,
                 _dbg_opts,
                 [
-                  header: 'Status for generic server ' ++ _,
+                  header: ~c"Status for generic server " ++ _,
                   data: _gen_server_data,
                   data: [
-                    {'LiveView', Phoenix.LiveViewTest.ClockLive},
-                    {'Parent pid', nil},
-                    {'Transport pid', _},
-                    {'Topic', <<_::binary>>},
-                    {'Components count', 0}
+                    {~c"LiveView", Phoenix.LiveViewTest.ClockLive},
+                    {~c"Parent pid", nil},
+                    {~c"Transport pid", _},
+                    {~c"Topic", <<_::binary>>},
+                    {~c"Components count", 0}
                   ]
                 ]
               ]} = :sys.get_status(pid)
