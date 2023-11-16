@@ -21,6 +21,7 @@ defmodule Phoenix.LiveView.Channel do
   @prefix :phoenix
   @not_mounted_at_router :not_mounted_at_router
   @max_host_size 253
+  @events :e
 
   def start_link({endpoint, from}) do
     hibernate_after = endpoint.config(:live_view)[:hibernate_after] || 15000
@@ -799,6 +800,7 @@ defmodule Phoenix.LiveView.Channel do
           |> Map.put(:to, to)
 
         new_state
+        |> push_pending_events_on_redirect(new_socket)
         |> push_redirect(opts, ref)
         |> stop_shutdown_redirect(:redirect, opts)
 
@@ -806,6 +808,7 @@ defmodule Phoenix.LiveView.Channel do
         opts = copy_flash(new_state, flash, opts)
 
         new_state
+        |> push_pending_events_on_redirect(new_socket)
         |> push_redirect(opts, ref)
         |> stop_shutdown_redirect(:redirect, opts)
 
@@ -813,6 +816,7 @@ defmodule Phoenix.LiveView.Channel do
         opts = copy_flash(new_state, flash, opts)
 
         new_state
+        |> push_pending_events_on_redirect(new_socket)
         |> push_live_redirect(opts, ref, pending_diff_ack)
         |> stop_shutdown_redirect(:live_redirect, opts)
 
@@ -835,6 +839,11 @@ defmodule Phoenix.LiveView.Channel do
          |> maybe_push_pending_diff_ack(pending_diff_ack)
          |> push_diff(diff, ref)}
     end
+  end
+
+  defp push_pending_events_on_redirect(state, socket) do
+    if events = Utils.get_push_events(socket), do: push(state, "diff", %{@events => events})
+    state
   end
 
   defp patch_params_and_action!(socket, %{to: to}) do
